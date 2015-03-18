@@ -1,37 +1,82 @@
 <html>
 <head>
 <script type="text/javascript">
-function onLoad() {
+function metricFor(url) {
   var now = new Date().getTime();
-  var page_load_time = now - performance.timing.navigationStart;
-  el = document.getElementById("url");
-  el.innerHTML = document.location;
-  el = document.getElementById("page-load-time");
-  el.innerHTML = page_load_time + "ms";
-  el = document.getElementById("dns-time");
-  dns_time = performance.timing.domainLookupEnd - performance.timing.domainLookupStart
-  el.innerHTML = dns_time + "ms";
+  var fetchStart = performance.timing.fetchStart - performance.timing.navigationStart;
+  var domainLookupEnd = performance.timing.domainLookupEnd - performance.timing.navigationStart;
+  var connectEnd = performance.timing.connectEnd - performance.timing.navigationStart;
+  var responseEnd = performance.timing.responseEnd - performance.timing.navigationStart;
+  var domComplete = performance.timing.domComplete - performance.timing.navigationStart;
+  var total = now - performance.timing.navigationStart;
+  var line =
+    '  <td>' +
+    '    <span>' + url + '</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + fetchStart + 'ms</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + domainLookupEnd + 'ms</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + connectEnd + 'ms</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + responseEnd + 'ms</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + domComplete + 'ms</span>' +
+    '  </td>' +
+    '  <td>' +
+    '    <span>' + total + 'ms</span>' +
+    '  </td>';
+  var child = document.createElement("tr");
+  child.innerHTML = line;
+  var el = document.getElementById("result");
+  el.appendChild(child);
+}
+
+function onLoad() {
+  metricFor(document.location);
+  el = document.getElementById("ajax");
+  el.onclick = function(evt) {
+    evt.preventDefault();
+    var url = document.getElementById("url").value;
+    var xhr = new XMLHttpRequest();
+    performance.mark("startTask1");
+    xhr.onreadystatechange = function(){
+      if ( xhr.readyState == 4) {
+        metricFor(url);
+        if (xhr.status == 200 ) {
+        } else {
+          console.error( xhr.status + xhr.statusText );
+        }
+      }
+    };
+    xhr.open('GET', url);
+    xhr.send();
+
+  }
 }
 
 </script>
 </head>
 <body onload="onLoad()">
-<table>
+<!--<form action="">
+  <label>URL to fetch:</label>
+  <input id="url" type="url"/>
+  <button id="ajax">Fetch</button>
+</form>-->
+<table id="result">
   <tr>
     <th>URL</th>
-    <th>Total load time</th>
-    <th>DNS time</th>
-  </tr>
-  <tr>
-    <td>
-      <span id="url"></span>
-    </td>
-    <td>
-      <span id="page-load-time"></span>
-    </td>
-    <td>
-      <span id="dns-time"></span>
-    </td>
+    <th>Fetch start</th>
+    <th>DNS resolve end</th>
+    <th>TCP connected</th>
+    <th>Doc received</th>
+    <th>Dom ready</th>
+    <th>Total</th>
   </tr>
 </table>
 </body>
