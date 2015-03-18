@@ -1,7 +1,7 @@
 <html>
 <head>
 <script type="text/javascript">
-function metricFor(url) {
+function metricForPage(url) {
   var now = new Date().getTime();
   var fetchStart = performance.timing.fetchStart - performance.timing.navigationStart;
   var domainLookupEnd = performance.timing.domainLookupEnd - performance.timing.navigationStart;
@@ -37,37 +37,81 @@ function metricFor(url) {
   el.appendChild(child);
 }
 
-function onLoad() {
-  metricFor(document.location);
-  el = document.getElementById("ajax");
-  el.onclick = function(evt) {
-    evt.preventDefault();
-    var url = document.getElementById("url").value;
-    var xhr = new XMLHttpRequest();
-    performance.mark("startTask1");
-    xhr.onreadystatechange = function(){
-      if ( xhr.readyState == 4) {
-        metricFor(url);
+function metricForAjax(url) {
+  var xhr = new XMLHttpRequest();
+  var start = new Date().getTime();
+  var unitialized = '', loading = '', loaded = '', interactive = '', completed = '';
+  xhr.onreadystatechange = function(){
+    var cur = new Date().getTime();
+    switch (xhr.readyState) {
+      case 1:
+        loading = cur-start;
+      break;
+      case 2:
+        loaded = cur-start;
+      break;
+      case 3:
+        interactive = cur-start;
+      break;
+      case 4:
+        {
+        completed = cur-start;
+        var line =
+          '  <td>' +
+          '    <span>' + url + '</span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span>' + loading + 'ms</span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span></span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span></span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span>' + loaded + 'ms</span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span>' + interactive + 'ms</span>' +
+          '  </td>' +
+          '  <td>' +
+          '    <span>' + completed + 'ms</span>' +
+          '  </td>';
+        var child = document.createElement("tr");
+        child.innerHTML = line;
+        var el = document.getElementById("result");
+        el.appendChild(child);
         if (xhr.status == 200 ) {
         } else {
           console.error( xhr.status + xhr.statusText );
         }
+        break;
       }
-    };
-    xhr.open('GET', url);
-    xhr.send();
+    }
+  };
+  xhr.open('GET', url);
+  xhr.send();
+}
 
+function onLoad() {
+  metricForPage(document.location);
+  el = document.getElementById("ajax");
+  el.onclick = function(evt) {
+    evt.preventDefault();
+    var url = document.getElementById("url").value;
+    metricForAjax(url);
   }
 }
 
 </script>
 </head>
 <body onload="onLoad()">
-<!--<form action="">
-  <label>URL to fetch:</label>
+<form action="">
+  <label>URL to fetch(CORS):</label>
   <input id="url" type="url"/>
   <button id="ajax">Fetch</button>
-</form>-->
+</form>
 <table id="result">
   <tr>
     <th>URL</th>
