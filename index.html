@@ -1,0 +1,38 @@
+<html>
+<head>
+<script type="text/javascript">
+function onLoad() {
+  var now = new Date().getTime();
+  var page_load_time = now - performance.timing.navigationStart;
+  el = document.getElementById("url");
+  el.innerHTML = document.location;
+  el = document.getElementById("page-load-time");
+  el.innerHTML = page_load_time + "ms";
+  el = document.getElementById("dns-time");
+  dns_time = performance.timing.domainLookupEnd - performance.timing.domainLookupStart
+  el.innerHTML = dns_time + "ms";
+}
+
+</script>
+</head>
+<body onload="onLoad()">
+<table>
+  <tr>
+    <th>URL</th>
+    <th>Total load time</th>
+    <th>DNS time</th>
+  </tr>
+  <tr>
+    <td>
+      <span id="url"></span>
+    </td>
+    <td>
+      <span id="page-load-time"></span>
+    </td>
+    <td>
+      <span id="dns-time"></span>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
